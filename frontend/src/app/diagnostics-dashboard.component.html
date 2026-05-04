@@ -1,0 +1,59 @@
+<main class="dashboard">
+  <section class="toolbar">
+    <div>
+      <h1>Diagnostyka serwera</h1>
+      <p>Status grafu: <strong>{{ result?.graph_status || 'idle' }}</strong></p>
+    </div>
+
+    <div class="run-panel">
+      <input
+        [(ngModel)]="logPath"
+        type="text"
+        placeholder="Opcjonalna ścieżka z allowlisty MCP"
+        aria-label="Ścieżka logów"
+      />
+      <button type="button" (click)="run()" [disabled]="loading">
+        {{ loading ? 'Analiza...' : 'Uruchom diagnostykę' }}
+      </button>
+    </div>
+  </section>
+
+  <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
+
+  <section class="status-grid" *ngIf="result">
+    <article class="status-item" *ngFor="let step of result.steps">
+      <span>{{ step.name }}</span>
+      <strong>{{ step.status }}</strong>
+    </article>
+  </section>
+
+  <section class="content-grid" *ngIf="result">
+    <article class="panel">
+      <h2>Znalezione błędy</h2>
+      <div class="empty" *ngIf="!result.findings.length">Brak wyników.</div>
+
+      <div class="finding" *ngFor="let finding of result.findings">
+        <div class="finding-header">
+          <h3>{{ finding.title }}</h3>
+          <span [class]="badgeClass(finding.severity)">{{ finding.severity }}</span>
+        </div>
+        <p>
+          Typ: <strong>{{ finding.kind }}</strong>
+          <span *ngIf="finding.requires_restart"> | wymaga restartu</span>
+        </p>
+        <pre *ngFor="let line of finding.evidence">{{ line }}</pre>
+      </div>
+    </article>
+
+    <article class="panel">
+      <h2>Propozycje naprawy</h2>
+      <div class="recommendation" *ngFor="let item of result.recommendations">
+        <div class="finding-header">
+          <h3>{{ item.title }}</h3>
+          <span [class]="badgeClass(item.priority)">{{ item.priority }}</span>
+        </div>
+        <p>{{ item.action }}</p>
+      </div>
+    </article>
+  </section>
+</main>

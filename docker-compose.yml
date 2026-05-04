@@ -1,0 +1,45 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      secrets:
+        - pip_conf
+    container_name: diagnostic-agent-backend
+    restart: unless-stopped
+    environment:
+      MCP_ALLOWED_LOG_PATHS: /app/sample_app.log,/host/var/log/app.log
+      BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS:-http://localhost:4200}
+    volumes:
+      - ./backend/sample_app.log:/app/sample_app.log:ro
+      # Linux host example:
+      # - /var/log/app.log:/host/var/log/app.log:ro
+    ports:
+      - "${DIAGNOSTIC_BACKEND_PORT:-8000}:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  frontend:
+    build:
+      context: ./frontend
+      network: host
+      secrets:
+        - ca_cert
+      args:
+        NPM_REGISTRY: ${NPM_REGISTRY:-}
+        NPM_AUTH_TOKEN: ${NPM_AUTH_TOKEN:-}
+    container_name: diagnostic-agent-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${DIAGNOSTIC_FRONTEND_PORT:-4200}:80"
+
+secrets:
+  pip_conf:
+    file: /etc/pip.conf
+  ca_cert:
+    file: /etc/pki/ca-trust/source/anchors/bank-jfrog-ca.crt
