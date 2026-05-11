@@ -114,6 +114,15 @@ button:disabled {
   margin-top: 12px;
 }
 
+.llm-note {
+  margin-bottom: 12px;
+  color: #526274;
+}
+
+.llm-summary p {
+  white-space: pre-line;
+}
+
 .finding-header {
   display: flex;
   align-items: start;

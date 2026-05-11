@@ -23,6 +23,8 @@ export interface DiagnosticResult {
   steps: GraphStep[];
   findings: DiagnosticFinding[];
   recommendations: Recommendation[];
+  llm_status?: string;
+  llm_summary?: string;
   log_snapshot?: {
     path?: string;
     filtered_line_count?: number;

@@ -6,6 +6,7 @@ from typing import Any, NotRequired, TypedDict
 
 from langgraph.graph import END, START, StateGraph
 
+from llm_client import OllamaClient
 from mcp_tools import MCPTools
 
 
@@ -43,6 +44,8 @@ class AgentState(TypedDict):
     resource_snapshot: NotRequired[dict[str, Any]]
     findings: NotRequired[list[DiagnosticFinding]]
     recommendations: NotRequired[list[Recommendation]]
+    llm_status: NotRequired[str]
+    llm_summary: NotRequired[str]
     graph_status: NotRequired[str]
     current_step: NotRequired[str]
     steps: NotRequired[list[dict[str, str]]]
@@ -73,6 +76,7 @@ RESOURCE_PATTERNS = [
 
 def build_diagnostic_graph(mcp_tools: MCPTools | None = None):
     tools = mcp_tools or MCPTools.from_env()
+    llm_client = OllamaClient()
     graph = StateGraph(AgentState)
 
     def fetch_logs(state: AgentState) -> dict[str, Any]:
@@ -111,8 +115,18 @@ def build_diagnostic_graph(mcp_tools: MCPTools | None = None):
 
     def suggest_fixes(state: AgentState) -> dict[str, Any]:
         recommendations = _recommend(state.get("findings", []))
+        llm_result = llm_client.suggest(
+            {
+                "findings": state.get("findings", []),
+                "recommendations": recommendations,
+                "log_snapshot": _metadata_only(state.get("log_snapshot", {})),
+                "resource_snapshot": state.get("resource_snapshot", {}),
+            }
+        )
         return {
             "recommendations": recommendations,
+            "llm_status": llm_result["status"],
+            "llm_summary": llm_result["content"],
             "current_step": "suggest_fixes",
             "graph_status": "completed",
             "steps": _append_step(state, "suggest_fixes", "completed"),
@@ -155,6 +169,15 @@ def _append_step(state: AgentState, name: str, status: str) -> list[dict[str, st
     steps = list(state.get("steps", []))
     steps.append({"name": name, "status": status})
     return steps
+
+
+def _metadata_only(log_snapshot: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "path": log_snapshot.get("path"),
+        "raw_line_count": log_snapshot.get("raw_line_count"),
+        "filtered_line_count": log_snapshot.get("filtered_line_count"),
+        "error": log_snapshot.get("error"),
+    }
 
 
 def _analyze_lines(lines: list[str]) -> list[DiagnosticFinding]:

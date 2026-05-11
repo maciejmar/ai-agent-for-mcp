@@ -9,17 +9,31 @@ services:
     environment:
       MCP_ALLOWED_LOG_PATHS: /app/sample_app.log,/host/var/log/app.log
       BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS:-http://localhost:4200}
+      REMOTE_MCP_ENABLED: ${REMOTE_MCP_ENABLED:-true}
+      MCP_SERVER_URL: ${MCP_SERVER_URL:-http://mcp-server:8000/mcp}
+      MCP_API_KEY: ${MCP_API_KEY:-dev-mcp-key}
+      MCP_CLIENT_TIMEOUT_SECONDS: ${MCP_CLIENT_TIMEOUT_SECONDS:-20}
+      OLLAMA_ENABLED: ${OLLAMA_ENABLED:-true}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://ollama:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.1}
+      OLLAMA_TIMEOUT_SECONDS: ${OLLAMA_TIMEOUT_SECONDS:-30}
     volumes:
       - ./backend/sample_app.log:/app/sample_app.log:ro
       # Linux host example:
       # - /var/log/app.log:/host/var/log/app.log:ro
     ports:
       - "${DIAGNOSTIC_BACKEND_PORT:-8000}:8000"
+    networks:
+      - diagnostic-agent
+      - ollama-network
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
       interval: 15s
       timeout: 5s
       retries: 5
+    depends_on:
+      mcp-server:
+        condition: service_healthy
 
   frontend:
     build:
@@ -37,6 +51,47 @@ services:
         condition: service_healthy
     ports:
       - "${DIAGNOSTIC_FRONTEND_PORT:-4200}:80"
+    networks:
+      - diagnostic-agent
+
+  mcp-server:
+    build:
+      context: ../mcp-serv/mcp-server-sandbox
+      dockerfile: Dockerfile
+      secrets:
+        - pip_conf
+    container_name: bgk-mcp-server
+    restart: unless-stopped
+    environment:
+      MCP_SERVER_PORT: 8000
+      MCP_API_KEY: ${MCP_API_KEY:-dev-mcp-key}
+      OLLAMA_URL: ${OLLAMA_BASE_URL:-http://ollama:11434}
+      MCP_LOG_LEVEL: ${MCP_LOG_LEVEL:-INFO}
+      JIRA_URL: ${JIRA_URL:-https://jira.bank.com.pl}
+      JIRA_PAT: ${JIRA_PAT:-}
+      CONFLUENCE_URL: ${CONFLUENCE_URL:-https://confluence.bank.com.pl}
+      CONFLUENCE_PAT: ${CONFLUENCE_PAT:-}
+      GRAFANA_URL: ${GRAFANA_URL:-http://grafana.internal:3000}
+      GRAFANA_TOKEN: ${GRAFANA_TOKEN:-}
+      BITBUCKET_URL: ${BITBUCKET_URL:-https://bitbucket.bank.com.pl}
+      BITBUCKET_PAT: ${BITBUCKET_PAT:-}
+    ports:
+      - "${MCP_SERVER_PORT:-8010}:8000"
+    networks:
+      - diagnostic-agent
+      - ollama-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+networks:
+  diagnostic-agent:
+    name: ${DIAGNOSTIC_NETWORK:-diagnostic-agent}
+  ollama-network:
+    external: true
+    name: ${OLLAMA_NETWORK:-ollama-network}
 
 secrets:
   pip_conf:

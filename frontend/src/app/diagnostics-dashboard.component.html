@@ -47,6 +47,13 @@
 
     <article class="panel">
       <h2>Propozycje naprawy</h2>
+      <div class="llm-note" *ngIf="result.llm_status">
+        <strong>Ollama:</strong> {{ result.llm_status }}
+      </div>
+      <div class="recommendation llm-summary" *ngIf="result.llm_summary">
+        <h3>Analiza modelu</h3>
+        <p>{{ result.llm_summary }}</p>
+      </div>
       <div class="recommendation" *ngFor="let item of result.recommendations">
         <div class="finding-header">
           <h3>{{ item.title }}</h3>

@@ -36,6 +36,8 @@ latest_result: dict[str, Any] = {
     "steps": [],
     "findings": [],
     "recommendations": [],
+    "llm_status": "idle",
+    "llm_summary": "",
 }
 
 

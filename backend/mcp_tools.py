@@ -7,6 +7,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterable
 
+from remote_mcp_client import RemoteMCPClient
+
 
 SENSITIVE_PATTERNS = [
     re.compile(r"(?i)(password|passwd|pwd|secret|token|api[_-]?key)\s*[:=]\s*\S+"),
@@ -47,6 +49,7 @@ class MCPTools:
     allowed_commands: dict[str, CommandSpec] = field(default_factory=dict)
     max_log_lines: int = 500
     command_timeout_seconds: int = 8
+    remote_client: RemoteMCPClient = field(default_factory=RemoteMCPClient)
 
     @classmethod
     def from_env(cls) -> "MCPTools":
@@ -82,7 +85,13 @@ class MCPTools:
         }
 
     def check_resources(self) -> dict[str, dict]:
-        results: dict[str, dict] = {}
+        results: dict[str, dict] = {
+            "remote_mcp": {
+                "container_status": self.remote_client.call_tool("server_container_status", {}),
+                "gpu_status": self.remote_client.call_tool("server_gpu_status", {}),
+                "ollama_models": self.remote_client.call_tool("ollama_list_models", {}),
+            }
+        }
         for alias in ("disk", "memory", "top"):
             results[alias] = self.run_safe_command(alias)
         return results
