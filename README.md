@@ -59,7 +59,6 @@ OLLAMA_BASE_URL: http://ollama:11434
 OLLAMA_MODEL: llama3.1
 OLLAMA_TIMEOUT_SECONDS: 30
 ```
-
 Backend jest podpiety do dwoch sieci Docker:
 
 - `diagnostic-agent` - siec tej aplikacji
