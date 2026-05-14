@@ -5,7 +5,7 @@ import { DiagnosticResult } from './diagnostics.models';
 
 @Injectable({ providedIn: 'root' })
 export class DiagnosticsService {
-  private readonly apiUrl = '/api';
+  private readonly apiUrl = '/agent-to-mcp/api';
 
   constructor(private readonly http: HttpClient) {}
 

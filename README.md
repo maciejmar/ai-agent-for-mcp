@@ -10,9 +10,12 @@ docker-compose up --build
 
 Adresy:
 
-- Frontend: `http://localhost:4200`
-- Backend API: `http://localhost:8000`
-- Swagger: `http://localhost:8000/docs`
+- Aplikacja: `http://localhost:8012/agent-to-mcp/`
+- Backend API przez Nginx: `http://localhost:8012/agent-to-mcp/api`
+- Swagger przez Nginx: `http://localhost:8012/agent-to-mcp/docs`
+- MCP przez Nginx: `http://localhost:8012/agent-to-mcp/mcp`
+
+Na hosta wystawiany jest tylko port `8012`. Backend i MCP server sa dostepne tylko w sieci Docker i sa proxy'owane przez Nginx frontendu.
 
 Domyslnie agent czyta przykladowy log `backend/sample_app.log`. Aby podpiac realny log hosta, odkomentuj volume w `docker-compose.yml`:
 
