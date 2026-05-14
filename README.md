@@ -17,6 +17,36 @@ Adresy:
 
 Na hosta wystawiany jest tylko port `8012`. Backend i MCP server sa dostepne tylko w sieci Docker i sa proxy'owane przez Nginx frontendu.
 
+## Wspolny Nginx
+
+Do wspolnego Nginxa, np. `portal-ai-nginx`, nie wklejaj konfiguracji z `frontend/nginx.conf`, bo zawiera ona nazwy kontenerow widoczne tylko w sieci tej aplikacji (`backend`, `mcp-server`).
+
+Wspolny Nginx powinien proxy'owac tylko do jednego wystawionego portu aplikacji:
+
+```nginx
+location = /agent-to-mcp {
+    return 301 /agent-to-mcp/;
+}
+
+location /agent-to-mcp/ {
+    proxy_pass          http://10.112.32.19:8012/agent-to-mcp/;
+    proxy_http_version  1.1;
+    proxy_set_header    Host                $host;
+    proxy_set_header    X-Real-IP           $remote_addr;
+    proxy_set_header    X-Forwarded-For     $proxy_add_x_forwarded_for;
+    proxy_set_header    X-Forwarded-Proto   $scheme;
+    proxy_read_timeout  300s;
+    proxy_send_timeout  300s;
+}
+```
+
+Po zmianie konfiguracji wspolnego Nginxa sprawdz i przeladuj:
+
+```bash
+docker exec portal-ai-nginx nginx -t
+docker exec portal-ai-nginx nginx -s reload
+```
+
 Domyslnie agent czyta przykladowy log `backend/sample_app.log`. Aby podpiac realny log hosta, odkomentuj volume w `docker-compose.yml`:
 
 ```yaml
