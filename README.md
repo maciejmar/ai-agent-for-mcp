@@ -13,9 +13,8 @@ Adresy:
 - Aplikacja: `http://localhost:8012/agent-to-mcp/`
 - Backend API przez Nginx: `http://localhost:8012/agent-to-mcp/api`
 - Swagger przez Nginx: `http://localhost:8012/agent-to-mcp/docs`
-- MCP przez Nginx: `http://localhost:8012/agent-to-mcp/mcp`
 
-Na hosta wystawiany jest tylko port `8012`. Backend i MCP server sa dostepne tylko w sieci Docker i sa proxy'owane przez Nginx frontendu.
+Na hosta wystawiany jest tylko port `8012`. Backend jest dostepny tylko w sieci Docker i jest proxy'owany przez Nginx frontendu.
 
 ## Wspolny Nginx
 
@@ -117,16 +116,23 @@ docker network connect ollama-network ollama
 
 ## Zewnetrzny MCP server
 
-Compose buduje tez realny MCP server z katalogu obok projektu:
+Ten projekt nie buduje MCP servera. Korzysta z osobnej aplikacji z katalogu:
 
 ```text
 ../mcp-serv/mcp-server-sandbox
 ```
 
-Backend laczy sie z nim przez MCP Streamable HTTP:
+Tamten MCP server zgodnie ze swoim `docker-compose.yml` wystawia na hoscie port `8010` i endpointy:
+
+```text
+http://10.112.32.19:8010/mcp
+http://10.112.32.19:8010/health
+```
+
+Backend agenta laczy sie z nim przez MCP Streamable HTTP. Domyslnie w Dockerze uzywa adresu hosta:
 
 ```yaml
-MCP_SERVER_URL: http://mcp-server:8000/mcp
+MCP_SERVER_URL: http://host.docker.internal:8010/mcp
 MCP_API_KEY: dev-mcp-key
 ```
 
@@ -136,4 +142,18 @@ Agent uzywa tego MCP servera do narzedzi infrastrukturalnych:
 - `server_gpu_status`
 - `ollama_list_models`
 
-Odczyt logow aplikacyjnych zostaje lokalnie w backendzie, bo obecny MCP server nie ma jeszcze narzedzia do bezpiecznego czytania logow z allowlisty.
+Agent uzywa tez narzedzi logowych MCP:
+
+- `log_list_allowed_paths`
+- `log_read_filtered`
+- `log_find_errors`
+
+Odczyt logow przez MCP jest preferowana sciezka. Lokalny odczyt w backendzie zostaje tylko jako fallback awaryjny.
+
+Logi po stronie MCP servera kontroluje:
+
+```yaml
+MCP_ALLOWED_LOG_PATHS: /logs/sample_app.log,/host/var/log/app.log
+MCP_MAX_LOG_LINES: 500
+MCP_MAX_LOG_LINES_HARD_LIMIT: 2000
+```

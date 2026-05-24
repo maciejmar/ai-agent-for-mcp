@@ -8,7 +8,7 @@ from typing import Any
 
 class RemoteMCPClient:
     def __init__(self) -> None:
-        self.url = os.getenv("MCP_SERVER_URL", "http://mcp-server:8000/mcp")
+        self.url = os.getenv("MCP_SERVER_URL", "http://host.docker.internal:8010/mcp")
         self.api_key = os.getenv("MCP_API_KEY", "")
         self.timeout_seconds = float(os.getenv("MCP_CLIENT_TIMEOUT_SECONDS", "20"))
         self.enabled = os.getenv("REMOTE_MCP_ENABLED", "true").lower() in {"1", "true", "yes"}

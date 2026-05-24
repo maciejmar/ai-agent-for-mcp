@@ -66,6 +66,16 @@ class MCPTools:
         )
 
     def read_filtered_logs(self, requested_path: str | None = None) -> dict:
+        remote_snapshot = self.remote_client.call_tool(
+            "log_read_filtered",
+            {"path": requested_path, "max_lines": self.max_log_lines},
+        )
+        if remote_snapshot.get("ok") and isinstance(remote_snapshot.get("result"), dict):
+            result = remote_snapshot["result"]
+            if not result.get("error"):
+                result["source"] = "remote_mcp"
+                return result
+
         path = self._resolve_allowed_path(requested_path)
         if path is None:
             return {
@@ -73,6 +83,7 @@ class MCPTools:
                 "available_paths": [str(path) for path in self.allowed_log_paths],
                 "lines": [],
                 "error": "No allowed log file was found.",
+                "remote_mcp_error": remote_snapshot.get("error") or remote_snapshot.get("result", {}).get("error"),
             }
 
         raw_lines = self._tail_lines(path, self.max_log_lines)
@@ -82,6 +93,7 @@ class MCPTools:
             "lines": filtered,
             "raw_line_count": len(raw_lines),
             "filtered_line_count": len(filtered),
+            "source": "local_fallback",
         }
 
     def check_resources(self) -> dict[str, dict]:
