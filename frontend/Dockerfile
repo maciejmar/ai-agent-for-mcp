@@ -1,15 +1,27 @@
 # syntax=docker/dockerfile:1.4
-FROM repo.bank.com.pl/zrai-docker-remote-dev/node:20-alpine AS build
+FROM repo.bank.com.pl/zrai-docker-remote-dev/node:20 AS build
+
+ARG NPM_REGISTRY=""
+ARG NPM_AUTH_TOKEN=""
 
 WORKDIR /app
 
+RUN if [ -n "$NPM_REGISTRY" ]; then \
+    echo "registry=${NPM_REGISTRY}" > .npmrc ; \
+    if [ -n "$NPM_AUTH_TOKEN" ]; then \
+      REGISTRY_HOST=$(echo "$NPM_REGISTRY" | sed 's|https\?://||'); \
+      echo "//${REGISTRY_HOST}:_authToken=${NPM_AUTH_TOKEN}" >> .npmrc ; \
+    fi ; \
+  fi
+
 COPY package*.json ./
 
-RUN --mount=type=secret,id=ca_cert,dst=/etc/pki/ca-trust/source/anchors/bank-jfrog-ca.crt \
+RUN --mount=type=secret,id=ca_cert,target=/etc/ssl/certs/ca.pem \
+    NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca.pem \
     npm install
 
 COPY . .
-RUN npm run build
+RUN npx ng build --configuration production
 
 FROM repo.bank.com.pl/zrai-docker-remote-dev/nginx:alpine
 
