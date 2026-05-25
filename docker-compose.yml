@@ -37,12 +37,8 @@ services:
   frontend:
     build:
       context: ./frontend
-      network: host
       secrets:
         - ca_cert
-      args:
-        NPM_REGISTRY: ${NPM_REGISTRY:-}
-        NPM_AUTH_TOKEN: ${NPM_AUTH_TOKEN:-}
     container_name: diagnostic-agent-frontend
     restart: unless-stopped
     depends_on:

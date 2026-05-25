@@ -1,23 +1,11 @@
 # syntax=docker/dockerfile:1.4
-# Docker Hub is unavailable in the bank network.
-FROM repo.bank.com.pl/zrai-docker-remote-dev/node:20 AS build
-
-ARG NPM_REGISTRY=""
-ARG NPM_AUTH_TOKEN=""
+FROM repo.bank.com.pl/zrai-docker-remote-dev/node:20-alpine AS build
 
 WORKDIR /app
 
-RUN if [ -n "$NPM_REGISTRY" ]; then \
-    echo "registry=${NPM_REGISTRY}" > .npmrc ; \
-    if [ -n "$NPM_AUTH_TOKEN" ]; then \
-      REGISTRY_HOST=$(echo "$NPM_REGISTRY" | sed 's|https\?://||'); \
-      echo "//${REGISTRY_HOST}:_authToken=${NPM_AUTH_TOKEN}" >> .npmrc ; \
-    fi ; \
-  fi
-
 COPY package*.json ./
-RUN --mount=type=secret,id=ca_cert,target=/etc/ssl/certs/ca.pem \
-    NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca.pem \
+
+RUN --mount=type=secret,id=ca_cert,dst=/etc/pki/ca-trust/source/anchors/bank-jfrog-ca.crt \
     npm install
 
 COPY . .
