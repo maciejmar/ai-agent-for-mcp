@@ -37,6 +37,7 @@ services:
   frontend:
     build:
       context: ./frontend
+      network: host
       secrets:
         - ca_cert
     container_name: diagnostic-agent-frontend
