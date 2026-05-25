@@ -9,7 +9,7 @@ RUN --mount=type=secret,id=ca_cert,dst=/etc/pki/ca-trust/source/anchors/bank-jfr
     npm install
 
 COPY . .
-RUN npx ng build --configuration production
+RUN npm run build
 
 FROM repo.bank.com.pl/zrai-docker-remote-dev/nginx:alpine
 
