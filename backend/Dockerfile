@@ -9,7 +9,11 @@ WORKDIR /app
 
 COPY requirements.txt .
 RUN --mount=type=secret,id=pip_conf,target=/etc/pip.conf \
-    pip install --no-cache-dir -r requirements.txt
+    pip install \
+    --trusted-host repo.bank.com.pl \
+    --trusted-host pypi.org \
+    --trusted-host files.pythonhosted.org \
+    --no-cache-dir -r requirements.txt
 
 COPY . .
 
