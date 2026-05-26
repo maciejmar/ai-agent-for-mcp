@@ -40,9 +40,7 @@ services:
       network: host
       secrets:
         - ca_cert
-      args:
-        NPM_REGISTRY: ${NPM_REGISTRY:-}
-        NPM_AUTH_TOKEN: ${NPM_AUTH_TOKEN:-}
+        - npmrc
     container_name: diagnostic-agent-frontend
     restart: unless-stopped
     depends_on:
@@ -65,3 +63,5 @@ secrets:
     file: /etc/pip.conf
   ca_cert:
     file: /etc/pki/ca-trust/source/anchors/bank-jfrog-ca.crt
+  npmrc:
+    file: /root/.npmrc
