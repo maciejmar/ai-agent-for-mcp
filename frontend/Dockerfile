@@ -14,7 +14,7 @@ RUN --mount=type=secret,id=ca_cert,target=/tmp/ca.pem \
     '
 
 COPY . .
-RUN npm run build
+RUN npm run build -- --base-href /agent-to-mcp/
 
 FROM repo.bank.com.pl/zrai-docker-remote-dev/nginx:alpine
 
