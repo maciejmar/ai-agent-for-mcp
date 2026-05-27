@@ -14,9 +14,9 @@ services:
       MCP_API_KEY: ${MCP_API_KEY:-dev-mcp-key}
       MCP_CLIENT_TIMEOUT_SECONDS: ${MCP_CLIENT_TIMEOUT_SECONDS:-20}
       OLLAMA_ENABLED: ${OLLAMA_ENABLED:-true}
-      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://ollama:11434}
-      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.1}
-      OLLAMA_TIMEOUT_SECONDS: ${OLLAMA_TIMEOUT_SECONDS:-30}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:6667}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-default}
+      OLLAMA_TIMEOUT_SECONDS: ${OLLAMA_TIMEOUT_SECONDS:-60}
     volumes:
       - ./backend/sample_app.log:/app/sample_app.log:ro
       # Linux host example:
@@ -25,7 +25,6 @@ services:
       - "8000"
     networks:
       - diagnostic-agent
-      - ollama-network
     extra_hosts:
       - "host.docker.internal:host-gateway"
     healthcheck:
@@ -54,9 +53,6 @@ services:
 networks:
   diagnostic-agent:
     name: ${DIAGNOSTIC_NETWORK:-diagnostic-agent}
-  ollama-network:
-    external: true
-    name: ${OLLAMA_NETWORK:-ollama-network}
 
 secrets:
   pip_conf:

@@ -10,10 +10,10 @@ from typing import Any
 class OllamaClient:
     def __init__(self) -> None:
         self.base_url = os.getenv("OLLAMA_BASE_URL", "").rstrip("/")
-        self.model = os.getenv("OLLAMA_MODEL", "").strip()
+        self.model = os.getenv("OLLAMA_MODEL", "default").strip()
         self.timeout_seconds = float(os.getenv("OLLAMA_TIMEOUT_SECONDS", "30"))
         self.enabled = os.getenv("OLLAMA_ENABLED", "true").lower() in {"1", "true", "yes"} and bool(
-            self.base_url and self.model
+            self.base_url
         )
 
     def suggest(self, payload: dict[str, Any]) -> dict[str, str]:
@@ -36,11 +36,10 @@ class OllamaClient:
                 },
                 {"role": "user", "content": prompt},
             ],
-            "options": {"temperature": 0.1},
         }
 
         req = urllib.request.Request(
-            f"{self.base_url}/api/chat",
+            f"{self.base_url}/v1/chat/completions",
             data=json.dumps(request_body).encode("utf-8"),
             headers={"Content-Type": "application/json"},
             method="POST",
@@ -50,9 +49,9 @@ class OllamaClient:
             with urllib.request.urlopen(req, timeout=self.timeout_seconds) as response:
                 data = json.loads(response.read().decode("utf-8"))
         except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
-            return {"status": "error", "content": f"Ollama unavailable: {exc}"}
+            return {"status": "error", "content": f"LLM unavailable: {exc}"}
 
-        content = data.get("message", {}).get("content", "")
+        content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
         return {"status": "ok", "content": content.strip()}
 
     def _build_prompt(self, payload: dict[str, Any]) -> str:
