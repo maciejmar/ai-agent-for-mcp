@@ -24,6 +24,7 @@ class OllamaClient:
         request_body = {
             "model": self.model,
             "stream": False,
+            "chat_template_kwargs": {"enable_thinking": False},
             "messages": [
                 {
                     "role": "system",
@@ -52,7 +53,12 @@ class OllamaClient:
             return {"status": "error", "content": f"LLM unavailable: {exc}"}
 
         content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
-        return {"status": "ok", "content": content.strip()}
+        return {"status": "ok", "content": _strip_thinking(content).strip()}
+
+
+def _strip_thinking(text: str) -> str:
+    import re
+    return re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
 
     def _build_prompt(self, payload: dict[str, Any]) -> str:
         return (
