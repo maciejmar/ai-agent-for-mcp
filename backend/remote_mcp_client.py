@@ -26,7 +26,9 @@ class RemoteMCPClient:
         from mcp import ClientSession
         from mcp.client.streamable_http import streamablehttp_client
 
-        headers = {"X-API-Key": self.api_key} if self.api_key else {}
+        headers = {"Host": "localhost"}
+        if self.api_key:
+            headers["X-API-Key"] = self.api_key
         async with asyncio.timeout(self.timeout_seconds):
             async with streamablehttp_client(self.url, headers=headers) as (read, write, _):
                 async with ClientSession(read, write) as session:
