@@ -204,17 +204,66 @@ def _analyze_lines(lines: list[str]) -> list[DiagnosticFinding]:
 
 def _analyze_resources(resources: dict[str, Any]) -> list[DiagnosticFinding]:
     findings: list[DiagnosticFinding] = []
+
     disk_output = resources.get("disk", {}).get("output", "")
     if re.search(r"\b(9[0-9]|100)%", disk_output):
-        findings.append(
-            {
-                "severity": Severity.CRITICAL,
-                "kind": ErrorKind.RESOURCE,
-                "title": "Disk usage is critically high",
-                "evidence": disk_output.splitlines()[:5],
+        findings.append({
+            "severity": Severity.CRITICAL,
+            "kind": ErrorKind.RESOURCE,
+            "title": "Disk usage is critically high",
+            "evidence": disk_output.splitlines()[:5],
+            "requires_restart": False,
+        })
+
+    remote = resources.get("remote_mcp", {})
+    container_configs = remote.get("container_configs", {})
+    for name, cfg in container_configs.items():
+        if not isinstance(cfg, dict) or cfg.get("error"):
+            continue
+
+        if cfg.get("health") == "unhealthy":
+            findings.append({
+                "severity": Severity.WARNING,
+                "kind": ErrorKind.RUNTIME,
+                "title": f"Container '{name}' is unhealthy",
+                "evidence": [f"health: unhealthy, image: {cfg.get('image', '?')}"],
+                "requires_restart": True,
+            })
+
+        restart_count = cfg.get("restart_count", 0)
+        if restart_count > 3:
+            findings.append({
+                "severity": Severity.WARNING,
+                "kind": ErrorKind.RUNTIME,
+                "title": f"Container '{name}' has restarted {restart_count} times",
+                "evidence": [f"restart_count: {restart_count}, policy: {cfg.get('restart_policy')}"],
                 "requires_restart": False,
-            }
-        )
+            })
+
+        if cfg.get("memory_limit_mb") == "unlimited":
+            findings.append({
+                "severity": Severity.INFO,
+                "kind": ErrorKind.RESOURCE,
+                "title": f"Container '{name}' has no memory limit",
+                "evidence": ["memory_limit_mb: unlimited — może spowodować OOM hosta"],
+                "requires_restart": False,
+            })
+
+    disk_usage = remote.get("disk_usage", {})
+    if isinstance(disk_usage.get("result"), dict):
+        total_gb = disk_usage["result"].get("total_images_gb", 0)
+        if isinstance(total_gb, (int, float)) and total_gb > 30:
+            findings.append({
+                "severity": Severity.INFO,
+                "kind": ErrorKind.RESOURCE,
+                "title": f"Docker images zajmują {total_gb} GB dysku",
+                "evidence": [
+                    f"total_images_gb: {total_gb}",
+                    f"stopped_reclaimable: {disk_usage['result'].get('stopped_containers_reclaimable', 0)}",
+                ],
+                "requires_restart": False,
+            })
+
     return findings
 
 

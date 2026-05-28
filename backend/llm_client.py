@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import urllib.error
 import urllib.request
 from typing import Any
@@ -29,10 +30,13 @@ class OllamaClient:
                 {
                     "role": "system",
                     "content": (
-                        "Jestes agentem diagnostycznym dla aplikacji w izolowanej sieci. "
-                        "Analizuj wylacznie dane dostarczone w prompcie. "
-                        "Nie wymyslaj komend spoza danych. "
-                        "Odpowiedz po polsku, zwiezle, w punktach: przyczyna, ryzyko, kroki naprawcze."
+                        "Jestes agentem diagnostycznym dla serwera AI w izolowanej sieci bankowej. "
+                        "Analizuj WYLACZNIE dane dostarczone w prompcie — nie wymyslaj konfiguracji ani komend. "
+                        "Odpowiedz po polsku, szczegolowo, w nastepujacych sekcjach:\n"
+                        "1) Konfiguracja i ustawienia — problemy z env, limity pamieci, restart policy, brakujace lub nieoptymalne ustawienia\n"
+                        "2) Status serwisow — zdrowie kontenerow, liczba restartow, unhealthy serwisy\n"
+                        "3) Zasoby i obrazy Docker — zuzycie dysku, duze obrazy do optymalizacji, woluminy\n"
+                        "4) Ryzyko i kroki naprawcze — konkretne, priorytetyzowane dzialania"
                     ),
                 },
                 {"role": "user", "content": prompt},
@@ -55,16 +59,24 @@ class OllamaClient:
         content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
         return {"status": "ok", "content": _strip_thinking(content).strip()}
 
+    def _build_prompt(self, payload: dict[str, Any]) -> str:
+        resource = payload.get("resource_snapshot", {})
+        remote = resource.get("remote_mcp", {})
+        container_configs = remote.get("container_configs", {})
+        system_info = remote.get("system_info", {})
+        disk_usage = remote.get("disk_usage", {})
+
+        return (
+            "Dane diagnostyczne zostaly przefiltrowane przez MCP i zredagowane z sekretow.\n\n"
+            f"=== Findings ===\n{json.dumps(payload.get('findings', []), ensure_ascii=False, indent=2)}\n\n"
+            f"=== Rule recommendations ===\n{json.dumps(payload.get('recommendations', []), ensure_ascii=False, indent=2)}\n\n"
+            f"=== Log metadata ===\n{json.dumps(payload.get('log_snapshot', {}), ensure_ascii=False, indent=2)}\n\n"
+            f"=== System info (host) ===\n{json.dumps(system_info, ensure_ascii=False, indent=2)}\n\n"
+            f"=== Container configurations ===\n{json.dumps(container_configs, ensure_ascii=False, indent=2)[:4000]}\n\n"
+            f"=== Docker disk usage ===\n{json.dumps(disk_usage, ensure_ascii=False, indent=2)[:2000]}\n\n"
+            f"=== Full resource snapshot ===\n{json.dumps(resource, ensure_ascii=False, indent=2)[:3000]}"
+        )
+
 
 def _strip_thinking(text: str) -> str:
-    import re
     return re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
-
-    def _build_prompt(self, payload: dict[str, Any]) -> str:
-        return (
-            "Dane diagnostyczne zostaly juz przefiltrowane przez MCP i zredagowane z sekretow.\n\n"
-            f"Findings:\n{json.dumps(payload.get('findings', []), ensure_ascii=False, indent=2)}\n\n"
-            f"Rule recommendations:\n{json.dumps(payload.get('recommendations', []), ensure_ascii=False, indent=2)}\n\n"
-            f"Log metadata:\n{json.dumps(payload.get('log_snapshot', {}), ensure_ascii=False, indent=2)}\n\n"
-            f"Resource metadata:\n{json.dumps(payload.get('resource_snapshot', {}), ensure_ascii=False, indent=2)[:6000]}"
-        )

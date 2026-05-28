@@ -134,16 +134,34 @@ class MCPTools:
         }
 
     def check_resources(self) -> dict[str, dict]:
+        container_status = self.remote_client.call_tool("server_container_status", {})
         results: dict[str, dict] = {
             "remote_mcp": {
-                "container_status": self.remote_client.call_tool("server_container_status", {}),
+                "container_status": container_status,
                 "gpu_status": self.remote_client.call_tool("server_gpu_status", {}),
                 "ollama_models": self.remote_client.call_tool("ollama_list_models", {}),
+                "system_info": self.remote_client.call_tool("server_system_info", {}),
+                "disk_usage": self.remote_client.call_tool("docker_system_df", {}),
+                "container_configs": self._inspect_all_containers(container_status),
             }
         }
         for alias in ("disk", "memory", "top"):
             results[alias] = self.run_safe_command(alias)
         return results
+
+    def _inspect_all_containers(self, container_status: dict) -> dict:
+        if not container_status.get("ok"):
+            return {}
+        containers = container_status.get("result", {}).get("containers", [])
+        configs: dict = {}
+        for c in containers[:15]:
+            name = c.get("name", "")
+            if not name:
+                continue
+            result = self.remote_client.call_tool("container_inspect", {"container_name": name})
+            if result.get("ok"):
+                configs[name] = result.get("result", {})
+        return configs
 
     def run_safe_command(self, alias: str) -> dict:
         spec = self.allowed_commands.get(alias)
