@@ -66,8 +66,12 @@ def diagnostics_latest() -> dict[str, Any]:
 def diagnostics_run(request: DiagnosticRequest) -> dict[str, Any]:
     global latest_result
 
+    log_path = request.log_path
+    if log_path and not (log_path.startswith("/") or log_path.startswith("docker://")):
+        log_path = None
+
     final_state: dict[str, Any] = {}
-    for state in stream_diagnostics(request.log_path):
+    for state in stream_diagnostics(log_path):
         final_state = dict(state)
         with latest_lock:
             latest_result = final_state
