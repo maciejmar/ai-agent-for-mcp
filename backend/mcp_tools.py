@@ -47,6 +47,7 @@ class MCPTools:
 
     allowed_log_paths: list[Path] = field(default_factory=list)
     allowed_commands: dict[str, CommandSpec] = field(default_factory=dict)
+    docker_log_containers: list[str] = field(default_factory=list)
     max_log_lines: int = 500
     command_timeout_seconds: int = 8
     remote_client: RemoteMCPClient = field(default_factory=RemoteMCPClient)
@@ -56,8 +57,12 @@ class MCPTools:
         log_paths = os.getenv("MCP_ALLOWED_LOG_PATHS", "/var/log/app.log,./sample_app.log")
         allowed_log_paths = [Path(item.strip()).resolve() for item in log_paths.split(",") if item.strip()]
 
+        containers_str = os.getenv("DOCKER_LOG_CONTAINERS", "diagnostic-agent-backend,bgk-mcp-server")
+        docker_log_containers = [c.strip() for c in containers_str.split(",") if c.strip()]
+
         return cls(
             allowed_log_paths=allowed_log_paths,
+            docker_log_containers=docker_log_containers,
             allowed_commands={
                 "disk": CommandSpec("df", ("-h",)),
                 "top": CommandSpec("top", ("-b", "-n", "1")),
@@ -66,6 +71,10 @@ class MCPTools:
         )
 
     def read_filtered_logs(self, requested_path: str | None = None) -> dict:
+        # When no path given, read logs from all configured Docker containers
+        if not requested_path and self.docker_log_containers:
+            return self._read_docker_containers()
+
         remote_snapshot = self.remote_client.call_tool(
             "log_read_filtered",
             {"path": requested_path, "max_lines": self.max_log_lines},
@@ -80,7 +89,7 @@ class MCPTools:
         if path is None:
             return {
                 "path": requested_path,
-                "available_paths": [str(path) for path in self.allowed_log_paths],
+                "available_paths": [str(p) for p in self.allowed_log_paths],
                 "lines": [],
                 "error": "No allowed log file was found.",
                 "remote_mcp_error": remote_snapshot.get("error") or remote_snapshot.get("result", {}).get("error"),
@@ -94,6 +103,34 @@ class MCPTools:
             "raw_line_count": len(raw_lines),
             "filtered_line_count": len(filtered),
             "source": "local_fallback",
+        }
+
+    def _read_docker_containers(self) -> dict:
+        all_lines: list[str] = []
+        errors: list[str] = []
+        per_container = max(1, self.max_log_lines // len(self.docker_log_containers))
+        for container in self.docker_log_containers:
+            snapshot = self.remote_client.call_tool(
+                "log_read_filtered",
+                {"path": f"docker://{container}", "max_lines": per_container},
+            )
+            if snapshot.get("ok") and isinstance(snapshot.get("result"), dict):
+                result = snapshot["result"]
+                if not result.get("error"):
+                    all_lines.extend(
+                        f"[{container}] {line}" for line in result.get("lines", [])
+                    )
+                else:
+                    errors.append(f"{container}: {result['error']}")
+            else:
+                errors.append(f"{container}: {snapshot.get('error', 'connection failed')}")
+        return {
+            "path": "docker://" + ",".join(self.docker_log_containers),
+            "lines": all_lines,
+            "filtered_line_count": len(all_lines),
+            "raw_line_count": len(all_lines),
+            "source": "remote_mcp_docker",
+            **({"errors": errors} if errors else {}),
         }
 
     def check_resources(self) -> dict[str, dict]:
