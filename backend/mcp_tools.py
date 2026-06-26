@@ -6,6 +6,7 @@ import subprocess
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterable
+from urllib.parse import urlparse
 
 from remote_mcp_client import RemoteMCPClient
 
@@ -134,7 +135,8 @@ class MCPTools:
         }
 
     def get_llm_inference_status(self) -> dict:
-        return self.remote_client.call_tool("llm_inference_status", {})
+        inference_port = urlparse(os.getenv("OLLAMA_BASE_URL", "")).port
+        return self.remote_client.call_tool("llm_inference_status", {"port": inference_port})
 
     def check_resources(self) -> dict[str, dict]:
         container_status = self.remote_client.call_tool("server_container_status", {})

@@ -47,6 +47,7 @@
         <span *ngIf="engine.ports"> | Porty: {{ engine.ports }}</span>
       </p>
       <p>{{ engine.status }}</p>
+      <p>Dopasowano po: {{ engine.matched_by.join(', ') }}</p>
     </div>
   </section>
 

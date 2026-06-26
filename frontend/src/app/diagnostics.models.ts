@@ -23,6 +23,7 @@ export interface LlmInferenceEngine {
   status: string;
   running: boolean;
   ports: string;
+  matched_by: ('name' | 'port')[];
 }
 
 export interface LlmInferenceStatus {
