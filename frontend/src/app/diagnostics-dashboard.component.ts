@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DiagnosticsService } from './diagnostics.service';
-import { DiagnosticResult } from './diagnostics.models';
+import { DiagnosticResult, LlmInferenceStatus } from './diagnostics.models';
 
 @Component({
   selector: 'app-root',
@@ -17,6 +17,10 @@ export class DiagnosticsDashboardComponent {
   result: DiagnosticResult | null = null;
   errorMessage = '';
 
+  llmStatusLoading = false;
+  llmStatus: LlmInferenceStatus | null = null;
+  llmStatusError = '';
+
   constructor(private readonly diagnostics: DiagnosticsService) {}
 
   run(): void {
@@ -30,6 +34,21 @@ export class DiagnosticsDashboardComponent {
       error: () => {
         this.errorMessage = 'Nie udało się uruchomić diagnostyki.';
         this.loading = false;
+      },
+    });
+  }
+
+  checkLlmInferenceStatus(): void {
+    this.llmStatusLoading = true;
+    this.llmStatusError = '';
+    this.diagnostics.getLlmInferenceStatus().subscribe({
+      next: (status) => {
+        this.llmStatus = status;
+        this.llmStatusLoading = false;
+      },
+      error: () => {
+        this.llmStatusError = 'Nie udało się sprawdzić aplikacji do inferencji LLM.';
+        this.llmStatusLoading = false;
       },
     });
   }

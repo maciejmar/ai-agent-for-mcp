@@ -44,7 +44,7 @@ h3 {
 
 .run-panel {
   display: grid;
-  grid-template-columns: minmax(260px, 420px) auto;
+  grid-template-columns: minmax(260px, 420px) auto auto;
   gap: 10px;
 }
 
@@ -143,6 +143,11 @@ button:disabled {
 .badge-critical {
   background: #ffe1df;
   color: #a51515;
+}
+
+.badge-ok {
+  background: #def7e5;
+  color: #1a7a3c;
 }
 
 .badge-warning,

@@ -15,10 +15,40 @@
       <button type="button" (click)="run()" [disabled]="loading">
         {{ loading ? 'Analiza...' : 'Uruchom diagnostykę' }}
       </button>
+      <button type="button" (click)="checkLlmInferenceStatus()" [disabled]="llmStatusLoading">
+        {{ llmStatusLoading ? 'Sprawdzanie...' : 'Sprawdź aplikację LLM' }}
+      </button>
     </div>
   </section>
 
   <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
+  <p class="error" *ngIf="llmStatusError">{{ llmStatusError }}</p>
+
+  <section class="panel llm-engines" *ngIf="llmStatus">
+    <h2>Aplikacje do inferencji LLM</h2>
+
+    <div class="empty" *ngIf="llmStatus.error || llmStatus.result?.error">
+      {{ llmStatus.error || llmStatus.result?.error }}
+    </div>
+
+    <div class="empty" *ngIf="!llmStatus.error && !llmStatus.result?.error && !llmStatus.result?.engines?.length">
+      Nie znaleziono żadnego znanego silnika inferencji w kontenerach.
+    </div>
+
+    <div class="finding" *ngFor="let engine of llmStatus.result?.engines">
+      <div class="finding-header">
+        <h3>{{ engine.name }}</h3>
+        <span [class]="engine.running ? 'badge badge-ok' : 'badge badge-critical'">
+          {{ engine.running ? 'działa' : 'zatrzymany' }}
+        </span>
+      </div>
+      <p>
+        Obraz: <strong>{{ engine.image }}</strong>
+        <span *ngIf="engine.ports"> | Porty: {{ engine.ports }}</span>
+      </p>
+      <p>{{ engine.status }}</p>
+    </div>
+  </section>
 
   <section class="status-grid" *ngIf="result">
     <article class="status-item" *ngFor="let step of result.steps">

@@ -17,6 +17,25 @@ export interface GraphStep {
   status: string;
 }
 
+export interface LlmInferenceEngine {
+  name: string;
+  image: string;
+  status: string;
+  running: boolean;
+  ports: string;
+}
+
+export interface LlmInferenceStatus {
+  ok?: boolean;
+  error?: string;
+  result?: {
+    engine_count?: number;
+    running_count?: number;
+    engines?: LlmInferenceEngine[];
+    error?: string;
+  };
+}
+
 export interface DiagnosticResult {
   graph_status: string;
   current_step: string;

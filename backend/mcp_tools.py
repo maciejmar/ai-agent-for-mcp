@@ -133,6 +133,9 @@ class MCPTools:
             **({"errors": errors} if errors else {}),
         }
 
+    def get_llm_inference_status(self) -> dict:
+        return self.remote_client.call_tool("llm_inference_status", {})
+
     def check_resources(self) -> dict[str, dict]:
         container_status = self.remote_client.call_tool("server_container_status", {})
         results: dict[str, dict] = {

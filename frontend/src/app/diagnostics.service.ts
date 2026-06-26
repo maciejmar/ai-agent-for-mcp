@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { DiagnosticResult } from './diagnostics.models';
+import { DiagnosticResult, LlmInferenceStatus } from './diagnostics.models';
 
 @Injectable({ providedIn: 'root' })
 export class DiagnosticsService {
@@ -23,5 +23,9 @@ export class DiagnosticsService {
     return this.http.get<Pick<DiagnosticResult, 'graph_status' | 'current_step' | 'steps'>>(
       `${this.apiUrl}/graph/status`,
     );
+  }
+
+  getLlmInferenceStatus(): Observable<LlmInferenceStatus> {
+    return this.http.get<LlmInferenceStatus>(`${this.apiUrl}/llm/inference-status`);
   }
 }

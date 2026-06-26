@@ -9,10 +9,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from agent import stream_diagnostics
+from mcp_tools import MCPTools
 
 
 class DiagnosticRequest(BaseModel):
     log_path: str | None = None
+
+
+mcp_tools = MCPTools.from_env()
 
 
 app = FastAPI(title="Isolated Network Diagnostic Agent", version="0.1.0")
@@ -60,6 +64,11 @@ def graph_status() -> dict[str, Any]:
 def diagnostics_latest() -> dict[str, Any]:
     with latest_lock:
         return dict(latest_result)
+
+
+@app.get("/llm/inference-status")
+def llm_inference_status() -> dict[str, Any]:
+    return mcp_tools.get_llm_inference_status()
 
 
 @app.post("/diagnostics/run")
