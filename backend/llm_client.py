@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import http.client
 import json
 import os
 import re
@@ -108,7 +109,7 @@ class OllamaClient:
         try:
             with urllib.request.urlopen(req, timeout=self.timeout_seconds) as response:
                 data = json.loads(response.read().decode("utf-8"))
-        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
+        except (urllib.error.URLError, http.client.HTTPException, OSError, json.JSONDecodeError) as exc:
             return {"status": "error", "content": f"LLM unavailable: {exc}"}
 
         content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
