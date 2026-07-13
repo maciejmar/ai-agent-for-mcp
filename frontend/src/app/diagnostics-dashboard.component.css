@@ -30,6 +30,16 @@ p {
 h1 {
   font-size: 28px;
   line-height: 1.2;
+  display: flex;
+  align-items: center;
+  gap: 0.3em;
+}
+
+.title-icon {
+  width: 2em;
+  height: 2em;
+  flex-shrink: 0;
+  color: #1565c0;
 }
 
 h2 {
@@ -70,7 +80,7 @@ input {
 .tooltip-bubble {
   position: absolute;
   z-index: 20;
-  bottom: calc(100% + 10px);
+  top: calc(100% + 10px);
   left: 0;
   width: 300px;
   max-width: 80vw;
@@ -84,7 +94,7 @@ input {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
   opacity: 0;
   visibility: hidden;
-  transform: translateY(4px);
+  transform: translateY(-4px);
   transition: opacity 0.15s ease, transform 0.15s ease;
   pointer-events: none;
 }
@@ -92,10 +102,10 @@ input {
 .tooltip-bubble::after {
   content: '';
   position: absolute;
-  top: 100%;
+  bottom: 100%;
   left: 24px;
   border: 6px solid transparent;
-  border-top-color: #12202f;
+  border-bottom-color: #12202f;
 }
 
 .tooltip-anchor:hover .tooltip-bubble,
@@ -439,6 +449,98 @@ pre {
   50% {
     opacity: 1;
   }
+}
+
+.progress-steps {
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+  max-width: 460px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.progress-step {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.progress-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  top: 9px;
+  left: 50%;
+  width: 100%;
+  height: 2px;
+  background: rgba(96, 255, 170, 0.25);
+  transition: background 0.3s ease;
+}
+
+.progress-step--done:not(:last-child)::after {
+  background: rgba(96, 255, 170, 0.75);
+}
+
+.progress-step-dot {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid rgba(96, 255, 170, 0.4);
+  background: #05130c;
+  font-size: 11px;
+  font-weight: 700;
+  color: #05130c;
+  transition: all 0.3s ease;
+}
+
+.progress-step--done .progress-step-dot {
+  background: #4fe39c;
+  border-color: #4fe39c;
+  box-shadow: 0 0 10px rgba(79, 227, 156, 0.7);
+}
+
+.progress-step--done .progress-step-dot::before {
+  content: '\2713';
+}
+
+.progress-step--active .progress-step-dot {
+  border-color: #9dffcb;
+  box-shadow: 0 0 0 4px rgba(157, 255, 203, 0.18);
+  animation: progress-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes progress-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 4px rgba(157, 255, 203, 0.18);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(157, 255, 203, 0.04);
+  }
+}
+
+.progress-step-label {
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: #8effc4;
+  opacity: 0.55;
+  transition: opacity 0.3s ease;
+}
+
+.progress-step--active .progress-step-label,
+.progress-step--done .progress-step-label {
+  opacity: 1;
 }
 
 .empty {

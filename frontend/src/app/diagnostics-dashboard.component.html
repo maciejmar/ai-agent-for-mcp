@@ -1,8 +1,23 @@
 <main class="dashboard">
   <section class="toolbar">
     <div>
-      <h1>Diagnostyka serwera</h1>
-      <p>Status grafu: <strong>{{ result?.graph_status || 'idle' }}</strong></p>
+      <h1>
+        <svg
+          class="title-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M3 13h4l2-6 3 12 3-14 2 8h4"></path>
+        </svg>
+        Diagnostyka serwera
+      </h1>
+      <p>Status grafu: <strong>{{ displayGraphStatus }}</strong></p>
     </div>
 
     <div class="run-panel">
@@ -50,6 +65,17 @@
     <p class="radar-status">
       Skanowanie serwera<span class="radar-dots"><span>.</span><span>.</span><span>.</span></span>
     </p>
+    <ol class="progress-steps">
+      <li
+        *ngFor="let step of progressSteps"
+        class="progress-step"
+        [class.progress-step--done]="step.state === 'done'"
+        [class.progress-step--active]="step.state === 'active'"
+      >
+        <span class="progress-step-dot"></span>
+        <span class="progress-step-label">{{ step.label }}</span>
+      </li>
+    </ol>
   </section>
 
   <section class="panel llm-engines" *ngIf="llmStatus">
