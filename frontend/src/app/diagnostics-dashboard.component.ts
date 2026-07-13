@@ -3,11 +3,12 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DiagnosticsService } from './diagnostics.service';
 import { DiagnosticResult, LlmInferenceStatus } from './diagnostics.models';
+import { MarkdownPipe } from './markdown.pipe';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MarkdownPipe],
   templateUrl: './diagnostics-dashboard.component.html',
   styleUrl: './diagnostics-dashboard.component.css',
 })

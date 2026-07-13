@@ -24,6 +24,22 @@
   <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
   <p class="error" *ngIf="llmStatusError">{{ llmStatusError }}</p>
 
+  <section class="radar-loading" *ngIf="loading" aria-live="polite">
+    <div class="radar-scene">
+      <div class="radar-disc">
+        <div class="radar-grid-circles"></div>
+        <div class="radar-grid-lines"></div>
+        <div class="radar-sweep"></div>
+        <div class="radar-blips">
+          <span></span><span></span><span></span><span></span>
+        </div>
+      </div>
+    </div>
+    <p class="radar-status">
+      Skanowanie serwera<span class="radar-dots"><span>.</span><span>.</span><span>.</span></span>
+    </p>
+  </section>
+
   <section class="panel llm-engines" *ngIf="llmStatus">
     <h2>Aplikacje do inferencji LLM</h2>
 
@@ -83,7 +99,7 @@
       </div>
       <div class="recommendation llm-summary" *ngIf="result.llm_summary">
         <h3>Analiza modelu</h3>
-        <p>{{ result.llm_summary }}</p>
+        <div class="llm-summary-content" [innerHTML]="result.llm_summary | markdown"></div>
       </div>
       <div class="recommendation" *ngFor="let item of result.recommendations">
         <div class="finding-header">

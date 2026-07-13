@@ -119,8 +119,44 @@ button:disabled {
   color: #526274;
 }
 
-.llm-summary p {
-  white-space: pre-line;
+.llm-summary-content h1,
+.llm-summary-content h2,
+.llm-summary-content h3 {
+  margin: 16px 0 6px;
+  color: #10203a;
+}
+
+.llm-summary-content h3:first-child {
+  margin-top: 0;
+}
+
+.llm-summary-content p {
+  margin: 0 0 10px;
+  line-height: 1.55;
+  color: #2c3a4d;
+}
+
+.llm-summary-content ul,
+.llm-summary-content ol {
+  margin: 0 0 12px;
+  padding-left: 20px;
+  line-height: 1.55;
+  color: #2c3a4d;
+}
+
+.llm-summary-content li {
+  margin-bottom: 4px;
+}
+
+.llm-summary-content code {
+  background: #eef1f6;
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 12px;
+}
+
+.llm-summary-content strong {
+  color: #10203a;
 }
 
 .finding-header {
@@ -175,6 +211,165 @@ pre {
 .error {
   margin-bottom: 16px;
   color: #a51515;
+}
+
+.radar-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+  padding: 56px 16px;
+  margin-bottom: 16px;
+  background: radial-gradient(circle at 50% 30%, #06170f, #01090a 75%);
+  border: 1px solid #0d3324;
+  border-radius: 12px;
+}
+
+.radar-scene {
+  width: 240px;
+  height: 240px;
+  perspective: 900px;
+}
+
+.radar-disc {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  transform: rotateX(58deg);
+  transform-style: preserve-3d;
+  background: radial-gradient(circle, rgba(52, 255, 148, 0.12), rgba(0, 0, 0, 0) 72%);
+  box-shadow:
+    0 0 50px rgba(52, 255, 148, 0.35),
+    inset 0 0 60px rgba(52, 255, 148, 0.18);
+  overflow: hidden;
+}
+
+.radar-grid-circles,
+.radar-grid-lines,
+.radar-sweep,
+.radar-blips {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+}
+
+.radar-grid-circles {
+  background: repeating-radial-gradient(
+    circle at 50% 50%,
+    rgba(96, 255, 170, 0.55) 0 1px,
+    transparent 1px 16.6%
+  );
+}
+
+.radar-grid-lines {
+  background:
+    linear-gradient(rgba(96, 255, 170, 0.35) 1px, transparent 1px) center / 100% 12.5%,
+    linear-gradient(90deg, rgba(96, 255, 170, 0.35) 1px, transparent 1px) center / 12.5% 100%;
+  mask-image: radial-gradient(circle, black 68%, transparent 70%);
+  -webkit-mask-image: radial-gradient(circle, black 68%, transparent 70%);
+}
+
+.radar-sweep {
+  background: conic-gradient(
+    from 0deg,
+    rgba(120, 255, 190, 0.9) 0deg,
+    rgba(120, 255, 190, 0.25) 35deg,
+    transparent 90deg 360deg
+  );
+  mix-blend-mode: screen;
+  animation: radar-spin 2.6s linear infinite;
+}
+
+@keyframes radar-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.radar-blips span {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #9dffcb;
+  box-shadow: 0 0 10px 3px rgba(157, 255, 203, 0.9);
+  opacity: 0;
+  animation: radar-blip 2.6s ease-in-out infinite;
+}
+
+.radar-blips span:nth-child(1) {
+  top: 28%;
+  left: 58%;
+  animation-delay: 0.1s;
+}
+
+.radar-blips span:nth-child(2) {
+  top: 66%;
+  left: 34%;
+  animation-delay: 0.9s;
+}
+
+.radar-blips span:nth-child(3) {
+  top: 42%;
+  left: 72%;
+  animation-delay: 1.5s;
+}
+
+.radar-blips span:nth-child(4) {
+  top: 60%;
+  left: 55%;
+  animation-delay: 2.1s;
+}
+
+@keyframes radar-blip {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  12%,
+  28% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  45% {
+    opacity: 0;
+  }
+}
+
+.radar-status {
+  color: #8effc4;
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.radar-dots span {
+  opacity: 0;
+  animation: radar-dots 1.4s infinite;
+}
+
+.radar-dots span:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.radar-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.radar-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes radar-dots {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 .empty {
