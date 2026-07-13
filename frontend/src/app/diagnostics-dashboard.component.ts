@@ -27,6 +27,8 @@ export class DiagnosticsDashboardComponent {
   run(): void {
     this.loading = true;
     this.errorMessage = '';
+    this.llmStatus = null;
+    this.llmStatusError = '';
     this.diagnostics.runDiagnostics(this.logPath).subscribe({
       next: (result) => {
         this.result = result;
@@ -42,6 +44,8 @@ export class DiagnosticsDashboardComponent {
   checkLlmInferenceStatus(): void {
     this.llmStatusLoading = true;
     this.llmStatusError = '';
+    this.result = null;
+    this.errorMessage = '';
     this.diagnostics.getLlmInferenceStatus().subscribe({
       next: (status) => {
         this.llmStatus = status;
