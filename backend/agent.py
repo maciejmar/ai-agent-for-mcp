@@ -76,7 +76,7 @@ RESOURCE_PATTERNS = [
 
 def build_diagnostic_graph(mcp_tools: MCPTools | None = None):
     tools = mcp_tools or MCPTools.from_env()
-    llm_client = OllamaClient()
+    llm_client = OllamaClient(llm_status_provider=tools.get_llm_inference_status)
     graph = StateGraph(AgentState)
 
     def fetch_logs(state: AgentState) -> dict[str, Any]:
